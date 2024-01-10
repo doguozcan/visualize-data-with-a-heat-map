@@ -34,7 +34,7 @@ function App() {
     setMinYear(d3.min(values, (d) => d.year));
     setMaxYear(d3.max(values, (d) => d.year));
 
-    const margin = { top: 10, right: 30, bottom: 30, left: 60 };
+    const margin = { top: 10, right: 30, bottom: 60, left: 60 };
     const width = 1000 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
 
@@ -53,9 +53,12 @@ function App() {
 
     const y = d3.scaleBand().domain(d3.range(0, 12)).range([height, 0]);
 
+    const minVariance = d3.min(values, (d) => d.variance);
+    const maxVariance = d3.max(values, (d) => d.variance);
+
     const colorScale = d3
       .scaleSequential()
-      .domain(d3.extent(values, (d) => baseTemperature + d.variance))
+      .domain([baseTemperature + minVariance, baseTemperature + maxVariance])
       .interpolator(d3.interpolateCool);
 
     const monthNames = [
@@ -144,9 +147,11 @@ function App() {
       .attr("id", "legend")
       .attr("transform", `translate(${width / 2 - 300 / 2},${height + 20})`);
 
+    const legendColors = colorScale.ticks(5).map((t) => colorScale(t));
+
     legend
       .selectAll(".legendRect")
-      .data(colorScale.ticks(5).map((t) => colorScale(t)))
+      .data(legendColors)
       .enter()
       .append("rect")
       .attr("class", "legendRect")
@@ -160,10 +165,29 @@ function App() {
       .attr("height", 30 / 2)
       .attr("fill", (d) => d);
 
+    legend
+      .selectAll(".legendText")
+      .data(legendColors)
+      .enter()
+      .append("text")
+      .attr("class", "legendText")
+      .attr("x", (d, i) => (300 / legendColors.length) * i + 10)
+      .attr("y", 30)
+      .attr("fill", "white")
+      .attr("font-size", "10px")
+      .attr("text-anchor", "middle")
+      .text((d, i) => {
+        const temperature = (
+          baseTemperature +
+          minVariance +
+          ((maxVariance - minVariance) / 5) * i
+        ).toFixed(1);
+        return `${temperature}℃`;
+      });
+
     return () => {
-      const svgNode = mapRef.current;
-      if (svgNode) {
-        d3.select(svgNode).selectAll("svg").remove();
+      if (mapRef.current) {
+        d3.select(mapRef.current).selectAll("svg").remove();
       }
     };
   }, [values, minYear, maxYear, baseTemperature]);
