@@ -165,26 +165,6 @@ function App() {
       .attr("height", 30 / 2)
       .attr("fill", (d) => d);
 
-    legend
-      .selectAll(".legendText")
-      .data(legendColors)
-      .enter()
-      .append("text")
-      .attr("class", "legendText")
-      .attr("x", (d, i) => (300 / legendColors.length) * i + 10)
-      .attr("y", 30)
-      .attr("fill", "white")
-      .attr("font-size", "10px")
-      .attr("text-anchor", "middle")
-      .text((d, i) => {
-        const temperature = (
-          baseTemperature +
-          minVariance +
-          ((maxVariance - minVariance) / 5) * i
-        ).toFixed(1);
-        return `${temperature}℃`;
-      });
-
     return () => {
       if (mapRef.current) {
         d3.select(mapRef.current).selectAll("svg").remove();
